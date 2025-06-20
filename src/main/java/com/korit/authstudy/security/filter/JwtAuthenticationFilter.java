@@ -9,6 +9,11 @@ import io.jsonwebtoken.JwtException;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -36,15 +41,18 @@ public class JwtAuthenticationFilter implements Filter {
                 Integer userId = Integer.parseInt(id);
                 Optional<User> foundUserOptional = usersRepository.findById(userId);
                 foundUserOptional.ifPresentOrElse((user) -> {
-                    // UserEntity를 Security에서 인증객체로 사용할 PrincipalUser로 변환
-                    PrincipalUser principalUser = PrincipalUser.builder()
-
-                            .build();
-                }, () -> {
-                    // 예외처리
+                        // UserEntity를 Security에서 인증객체로 사용할 PrincipalUser로 변환
+                        PrincipalUser principalUser = PrincipalUser.builder()
+                                .userId(user.getId())
+                                .username(user.getUsername())
+                                .password(user.getPassword())
+                                .build();
+                        Authentication authentication = new UsernamePasswordAuthenticationToken(principalUser, principalUser.getPassword(), principalUser.getAuthorities());
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    }, () -> {
+                        throw new AuthenticationServiceException("인증 실패");
                 });
-
-            } catch (JwtException e) {
+            } catch (RuntimeException e) {
                 e.printStackTrace();
             }
         }
