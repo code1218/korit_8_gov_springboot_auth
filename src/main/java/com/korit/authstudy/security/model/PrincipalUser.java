@@ -1,5 +1,6 @@
 package com.korit.authstudy.security.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
@@ -13,6 +14,7 @@ import java.util.List;
 public class PrincipalUser implements UserDetails {
     private Integer userId;
     private String username;
+    @JsonIgnore
     private String password;
 
     @Override
